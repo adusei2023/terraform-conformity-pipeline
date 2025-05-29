@@ -55,9 +55,9 @@ git add .
 git commit -m "Initial commit - Terraform Conformity Pipeline setup"
 
 # Add GitHub remote and push
-git remote add origin https://github.com/$GITHUB_OWNER/$GITHUB_REPO.git
+git remote add origin https://github.com/adusei2023/terraform-conformity-pipeline.git
 git branch -M main
 git push -u origin main
 
 echo "GitHub repository setup complete!"
-echo "Repository: https://github.com/$GITHUB_OWNER/$GITHUB_REPO"
+echo "Repository: https://github.com/adusei2023/terraform-conformity-pipeline"
