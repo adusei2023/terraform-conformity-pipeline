@@ -26,18 +26,6 @@ variable "github_repo" {
   type        = string
 }
 
-variable "github_token" {
-  description = "GitHub personal access token"
-  type        = string
-  sensitive   = true
-}
-
-variable "github_webhook_secret" {
-  description = "Secret for GitHub webhook"
-  type        = string
-  sensitive   = true
-}
-
 variable "github_branch" {
   description = "GitHub branch to monitor"
   type        = string
@@ -48,4 +36,15 @@ variable "conformity_region" {
   description = "Conformity region"
   type        = string
   default     = "us-east-1"
+}
+variable "github_token" {
+  description = "GitHub personal access token"
+  type        = string
+  sensitive   = true
+}
+
+variable "github_webhook_secret" {
+  description = "Secret for GitHub webhook"
+  type        = string
+  sensitive   = true
 }

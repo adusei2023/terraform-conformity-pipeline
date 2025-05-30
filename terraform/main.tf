@@ -39,28 +39,19 @@ resource "random_string" "suffix" {
 # Data source for current AWS account
 data "aws_caller_identity" "current" {}
 
-# GitHub webhook for CodePipeline
-resource "aws_codepipeline_webhook" "github_webhook" {
-  name            = "${var.project_name}-webhook"
-  authentication  = "GITHUB_HMAC"
-  target_action   = "Source"
-  target_pipeline = aws_codepipeline.terraform_pipeline.name
-
-  authentication_configuration {
-    secret_token = var.github_webhook_secret
-  }
-
-  filter {
-    json_path    = "$.ref"
-    match_equals = "refs/heads/{Branch}"
-  }
-}
-
 # Parameter Store for GitHub token
 resource "aws_ssm_parameter" "github_token" {
-  name  = "/github/token"
+  name  = "/github/token-v2"
   type  = "SecureString"
   value = var.github_token
+
+  tags = {
+    Name = "GitHub Token"
+  }
+
+  lifecycle {
+    ignore_changes = [value]
+  }
 }
 
 # IAM Role for CodeBuild
@@ -110,9 +101,13 @@ resource "aws_iam_role_policy" "codebuild_policy" {
       {
         Effect = "Allow"
         Action = [
-          "codecommit:GitPull"
+          "ssm:GetParameter",
+          "ssm:GetParameters"
         ]
-        Resource = "arn:aws:codecommit:*:${data.aws_caller_identity.current.account_id}:repository/*"
+        Resource = [
+          "arn:aws:ssm:*:${data.aws_caller_identity.current.account_id}:parameter/conformity/*",
+          "arn:aws:ssm:*:${data.aws_caller_identity.current.account_id}:parameter/github/*"
+        ]
       }
     ]
   })
@@ -128,13 +123,13 @@ resource "aws_codebuild_project" "terraform_build" {
   }
 
   environment {
-    compute_type                = "BUILD_GENERAL1_MEDIUM"
-    image                      = "aws/codebuild/amazonlinux2-x86_64-standard:4.0"
-    type                       = "LINUX_CONTAINER"
+    compute_type = "BUILD_GENERAL1_MEDIUM"
+    image        = "aws/codebuild/amazonlinux2-x86_64-standard:4.0"
+    type         = "LINUX_CONTAINER"
 
     environment_variable {
       name  = "CONFORMITY_API_KEY"
-      value = var.conformity_api_key
+      value = "/conformity/api-key-v2"
       type  = "PARAMETER_STORE"
     }
 
@@ -198,19 +193,21 @@ resource "aws_iam_role_policy" "codepipeline_policy" {
       {
         Effect = "Allow"
         Action = [
-          "codecommit:GetBranch",
-          "codecommit:GetCommit",
-          "codecommit:GetRepository",
-          "codecommit:ListBranches",
-          "codecommit:ListRepositories"
+          "codestar-connections:UseConnection"
         ]
-        Resource = "*"
+        Resource = aws_codestarconnections_connection.github.arn
       }
     ]
   })
 }
 
-# CodePipeline
+# CodeStar Connection for GitHub
+resource "aws_codestarconnections_connection" "github" {
+  name          = "${substr(var.project_name, 0, 20)}-gh-conn"
+  provider_type = "GitHub"
+}
+
+# Update CodePipeline to use GitHub version 2
 resource "aws_codepipeline" "terraform_pipeline" {
   name     = "${var.project_name}-pipeline"
   role_arn = aws_iam_role.codepipeline_role.arn
@@ -226,16 +223,15 @@ resource "aws_codepipeline" "terraform_pipeline" {
     action {
       name             = "Source"
       category         = "Source"
-      owner            = "ThirdParty"
-      provider         = "GitHub"
+      owner            = "AWS"
+      provider         = "CodeStarSourceConnection"
       version          = "1"
       output_artifacts = ["source_output"]
 
       configuration = {
-        Owner      = var.github_owner
-        Repo       = var.github_repo
-        Branch     = var.github_branch
-        OAuthToken = var.github_token
+        ConnectionArn    = aws_codestarconnections_connection.github.arn
+        FullRepositoryId = "${var.github_owner}/${var.github_repo}"
+        BranchName       = var.github_branch
       }
     }
   }
@@ -259,9 +255,17 @@ resource "aws_codepipeline" "terraform_pipeline" {
   }
 }
 
-# Parameter Store for Conformity API Key
+# Store Conformity API key in Parameter Store
 resource "aws_ssm_parameter" "conformity_api_key" {
-  name  = "/conformity/api-key"
+  name  = "/conformity/api-key-v2"
   type  = "SecureString"
   value = var.conformity_api_key
+
+  tags = {
+    Name = "Conformity API Key"
+  }
+
+  lifecycle {
+    ignore_changes = [value]
+  }
 }

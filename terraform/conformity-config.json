@@ -1,0 +1,14 @@
+{
+  "template-scanner": {
+    "rules": {
+      "EC2-001": "error",
+      "EC2-002": "error",
+      "S3-001": "error",
+      "S3-002": "error",
+      "IAM-001": "error",
+      "IAM-002": "error"
+    },
+    "ignore": [],
+    "severity-threshold": "medium"
+  }
+}

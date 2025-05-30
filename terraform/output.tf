@@ -14,7 +14,3 @@ output "s3_bucket_name" {
   value       = aws_s3_bucket.pipeline_artifacts.bucket
 }
 
-output "github_webhook_url" {
-  description = "GitHub webhook URL"
-  value       = aws_codepipeline_webhook.github_webhook.url
-}

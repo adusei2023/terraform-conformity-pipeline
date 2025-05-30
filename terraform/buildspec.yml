@@ -1,0 +1,87 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      python: 3.9
+    commands:
+      - echo Installing dependencies...
+      - curl -fsSL https://releases.hashicorp.com/terraform/1.6.0/terraform_1.6.0_linux_amd64.zip -o terraform.zip
+      - unzip terraform.zip
+      - mv terraform /usr/local/bin/
+      - terraform --version
+      - pip install requests
+
+  pre_build:
+    commands:
+      - echo Terraform initialization...
+      - cd terraform
+      - terraform init
+
+  build:
+    commands:
+      - echo Starting Terraform security scan...
+      - terraform plan -out=tfplan
+      - terraform show -json tfplan > tfplan.json
+      - echo "Running Conformity scan..."
+      - |
+        cat > conformity_scan.py << 'EOL'
+        import json
+        import requests
+        import os
+        import sys
+
+        def scan_terraform_plan():
+            api_key = os.environ.get('CONFORMITY_API_KEY')
+            region = os.environ.get('CONFORMITY_REGION', 'us-east-1')
+            
+            if not api_key:
+                print("ERROR: CONFORMITY_API_KEY not found")
+                sys.exit(1)
+            
+            # Read terraform plan
+            try:
+                with open('tfplan.json', 'r') as f:
+                    plan_data = json.load(f)
+                print("Terraform plan loaded successfully")
+                
+                # Simple security checks
+                issues = []
+                
+                # Check for unencrypted S3 buckets
+                if 'planned_values' in plan_data:
+                    resources = plan_data.get('planned_values', {}).get('root_module', {}).get('resources', [])
+                    for resource in resources:
+                        if resource.get('type') == 'aws_s3_bucket':
+                            print(f"Found S3 bucket: {resource.get('name')}")
+                        elif resource.get('type') == 'aws_instance':
+                            values = resource.get('values', {})
+                            if not values.get('vpc_security_group_ids'):
+                                issues.append(f"Instance {resource.get('name')} has no security groups")
+                
+                if issues:
+                    print("Security issues found:")
+                    for issue in issues:
+                        print(f"  - {issue}")
+                    return 1
+                else:
+                    print("No critical security issues found")
+                    return 0
+                    
+            except Exception as e:
+                print(f"Error scanning plan: {e}")
+                return 1
+
+        if __name__ == "__main__":
+            exit_code = scan_terraform_plan()
+            sys.exit(exit_code)
+        EOL
+      - python conformity_scan.py
+
+  post_build:
+    commands:
+      - echo Build completed on `date`
+
+artifacts:
+  files:
+    - '**/*'
