@@ -29,7 +29,7 @@ phases:
   pre_build:
     commands:
       - echo "=== Pre-build phase ==="
-      - echo "Current directory: $(pwd)"
+      - echo "Current directory is $(pwd)"
       - echo "Directory contents:"
       - ls -la
       - echo "=== Creating terraform.tfvars ==="
