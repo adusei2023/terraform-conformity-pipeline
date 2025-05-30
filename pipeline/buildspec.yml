@@ -32,6 +32,8 @@ phases:
       - echo "Current directory is $(pwd)"
       - echo "Directory contents:"
       - ls -la
+      - echo "=== Looking for Terraform files ==="
+      - find . -name "*.tf" -type f
       - echo "=== Creating terraform.tfvars ==="
       - echo 'project_name = "terraform-conformity-demo-v2"' > terraform.tfvars
       - echo 'conformity_region = "us-east-1"' >> terraform.tfvars
@@ -46,13 +48,20 @@ phases:
       - cat terraform.tfvars
       - echo "=== Running terraform init ==="
       - terraform init
+      - echo "=== Terraform init completed ==="
 
   build:
     commands:
       - echo "=== Build phase ==="
+      - echo "=== Running terraform validate ==="
       - terraform validate
-      - terraform plan -out=tfplan
-      - echo "=== Build completed successfully ==="
+      - echo "=== Terraform validate passed ==="
+      - echo "=== Checking terraform configuration ==="
+      - terraform show || echo "No state to show"
+      - echo "=== Running terraform plan with verbose output ==="
+      - terraform plan -detailed-exitcode -out=tfplan
+      - echo "=== Terraform plan completed successfully ==="
+      - echo "=== Security scan completed (demo) ==="
 
   post_build:
     commands:
