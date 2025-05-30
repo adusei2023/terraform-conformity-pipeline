@@ -7,9 +7,19 @@ phases:
       python: 3.9
     commands:
       - echo "=== Installing Terraform ==="
-      - wget https://releases.hashicorp.com/terraform/1.6.0/terraform_1.6.0_linux_amd64.zip
+      - echo "Checking current directory and available tools..."
+      - pwd
+      - which wget || which curl
+      - echo "Downloading Terraform..."
+      - curl -fsSL https://releases.hashicorp.com/terraform/1.6.0/terraform_1.6.0_linux_amd64.zip -o terraform_1.6.0_linux_amd64.zip
+      - echo "Verifying download..."
+      - ls -la terraform_1.6.0_linux_amd64.zip
+      - echo "Extracting Terraform..."
       - unzip terraform_1.6.0_linux_amd64.zip
+      - echo "Installing Terraform..."
+      - chmod +x terraform
       - mv terraform /usr/local/bin/
+      - echo "Verifying Terraform installation..."
       - terraform --version
       - echo "=== Terraform installed successfully ==="
 
