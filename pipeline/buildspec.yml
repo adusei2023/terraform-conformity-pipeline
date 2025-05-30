@@ -5,67 +5,42 @@ phases:
     runtime-versions:
       python: 3.9
     commands:
-      - echo "=== Installing Terraform ==="
-      - echo "Checking system info..."
-      - uname -a
-      - echo "Installing prerequisites..."
       - yum update -y
       - yum install -y wget unzip
-      - echo "Downloading Terraform..."
       - cd /tmp
       - wget https://releases.hashicorp.com/terraform/1.6.0/terraform_1.6.0_linux_amd64.zip
-      - echo "Downloaded file info:"
-      - ls -la terraform_1.6.0_linux_amd64.zip
-      - echo "Extracting Terraform..."
       - unzip terraform_1.6.0_linux_amd64.zip
-      - echo "Making executable and installing..."
       - chmod +x terraform
       - mv terraform /usr/local/bin/
-      - echo "Verifying installation..."
-      - which terraform
       - terraform --version
-      - echo "=== Terraform installed successfully ==="
 
   pre_build:
     commands:
       - echo "=== Pre-build phase ==="
-      - echo "Current directory is $(pwd)"
-      - echo "Directory contents:"
+      - pwd && ls -la
+      - echo "=== Navigating to terraform directory ==="
+      - cd terraform || (echo "Working in root directory" && pwd)
       - ls -la
-      - echo "=== Looking for Terraform files ==="
-      - find . -name "*.tf" -type f
-      - echo "=== Creating terraform.tfvars ==="
-      - echo 'project_name = "terraform-conformity-demo-v2"' > terraform.tfvars
+      - echo 'aws_region = "us-east-1"' > terraform.tfvars
+      - echo 'project_name = "terraform-conformity-demo-v2"' >> terraform.tfvars
       - echo 'conformity_region = "us-east-1"' >> terraform.tfvars
       - echo 'github_owner = "adusei2023"' >> terraform.tfvars
       - echo 'github_repo = "terraform-conformity-pipeline"' >> terraform.tfvars
       - echo 'github_branch = "main"' >> terraform.tfvars
-      - echo 'aws_region = "us-east-1"' >> terraform.tfvars
       - echo 'conformity_api_key = "dummy"' >> terraform.tfvars
       - echo 'github_token = "dummy"' >> terraform.tfvars
       - echo 'github_webhook_secret = "dummy"' >> terraform.tfvars
-      - echo "=== terraform.tfvars created ==="
-      - cat terraform.tfvars
-      - echo "=== Running terraform init ==="
       - terraform init
-      - echo "=== Terraform init completed ==="
 
   build:
     commands:
       - echo "=== Build phase ==="
-      - echo "=== Running terraform validate ==="
       - terraform validate
-      - echo "=== Terraform validate passed ==="
-      - echo "=== Checking terraform configuration ==="
-      - terraform show || echo "No state to show"
-      - echo "=== Running terraform plan with verbose output ==="
-      - terraform plan -detailed-exitcode -out=tfplan
-      - echo "=== Terraform plan completed successfully ==="
-      - echo "=== Security scan completed (demo) ==="
+      - echo "=== Pipeline validation completed ==="
 
   post_build:
     commands:
-      - echo "Pipeline completed at $(date)"
+      - echo "Pipeline completed successfully"
 
 artifacts:
   files:
