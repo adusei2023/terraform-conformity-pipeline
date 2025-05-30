@@ -124,7 +124,7 @@ resource "aws_codebuild_project" "terraform_build" {
 
   environment {
     compute_type = "BUILD_GENERAL1_MEDIUM"
-    image        = "aws/codebuild/amazonlinux2-x86_64-standard:4.0"
+    image        = "aws/codebuild/standard:7.0"  # Updated to newer image
     type         = "LINUX_CONTAINER"
 
     environment_variable {

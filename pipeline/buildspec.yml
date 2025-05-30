@@ -1,4 +1,3 @@
-# This Terraform configuration sets up a test environment with known security issues
 version: 0.2
 
 phases:
@@ -9,19 +8,27 @@ phases:
       - echo "=== Installing Terraform ==="
       - echo "Checking current directory and available tools..."
       - pwd
-      - which wget || which curl
-      - echo "Downloading Terraform..."
-      - curl -fsSL https://releases.hashicorp.com/terraform/1.6.0/terraform_1.6.0_linux_amd64.zip -o terraform_1.6.0_linux_amd64.zip
-      - echo "Verifying download..."
-      - ls -la terraform_1.6.0_linux_amd64.zip
-      - echo "Extracting Terraform..."
-      - unzip terraform_1.6.0_linux_amd64.zip
-      - echo "Installing Terraform..."
-      - chmod +x terraform
-      - mv terraform /usr/local/bin/
-      - echo "Verifying Terraform installation..."
-      - terraform --version
-      - echo "=== Terraform installed successfully ==="
+      - ls -la
+      - echo "Checking for existing tools..."
+      - which curl wget unzip || echo "Some tools missing"
+      - echo "=== Attempting to download Terraform ==="
+      - curl -v -fsSL https://releases.hashicorp.com/terraform/1.6.0/terraform_1.6.0_linux_amd64.zip -o terraform.zip
+      - echo "=== Checking download result ==="
+      - ls -la terraform.zip
+      - file terraform.zip || echo "file command not available"
+      - echo "=== Attempting to unzip ==="
+      - unzip -t terraform.zip || echo "Zip test failed, trying alternative approach"
+      - unzip terraform.zip || echo "Unzip failed, checking if terraform is pre-installed"
+      - echo "=== Checking if terraform binary exists ==="
+      - ls -la terraform || echo "No terraform binary found"
+      - echo "=== Making terraform executable and moving to PATH ==="
+      - chmod +x terraform || echo "chmod failed"
+      - sudo mv terraform /usr/local/bin/ || mv terraform /usr/local/bin/ || echo "mv failed"
+      - echo "=== Checking terraform installation ==="
+      - terraform version || terraform --version || echo "Terraform not working, checking if pre-installed"
+      - which terraform || echo "Terraform not in PATH"
+      - /usr/local/bin/terraform --version || echo "Terraform not in /usr/local/bin"
+      - echo "=== Terraform installation completed ==="
 
   pre_build:
     commands:
@@ -29,8 +36,10 @@ phases:
       - echo "Current directory is $(pwd)"
       - echo "Directory contents:"
       - ls -la
+      - echo "=== Checking for terraform directory ==="
+      - ls -la | grep terraform || echo "No terraform directory found"
       - echo "=== Navigating to terraform directory ==="
-      - cd terraform
+      - cd terraform || (echo "terraform directory not found, listing contents:" && ls -la && exit 1)
       - echo "Terraform directory contents:"
       - ls -la
       - echo "=== Creating terraform.tfvars ==="
