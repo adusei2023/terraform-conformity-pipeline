@@ -1,13 +1,7 @@
-variable "aws_region" {
-  description = "AWS region"
-  type        = string
-  default     = "us-east-1"
-}
-
 variable "project_name" {
   description = "Name of the project"
   type        = string
-  default     = "terraform-conformity-demo"
+  default     = "terraform-conformity-demo-v2"
 }
 
 variable "conformity_api_key" {
@@ -26,17 +20,6 @@ variable "github_repo" {
   type        = string
 }
 
-variable "github_branch" {
-  description = "GitHub branch to monitor"
-  type        = string
-  default     = "main"
-}
-
-variable "conformity_region" {
-  description = "Conformity region"
-  type        = string
-  default     = "us-east-1"
-}
 variable "github_token" {
   description = "GitHub personal access token"
   type        = string
@@ -47,4 +30,16 @@ variable "github_webhook_secret" {
   description = "Secret for GitHub webhook"
   type        = string
   sensitive   = true
+}
+
+variable "github_branch" {
+  description = "GitHub branch to monitor"
+  type        = string
+  default     = "main"
+}
+
+variable "conformity_region" {
+  description = "Conformity region"
+  type        = string
+  default     = "us-east-1"
 }
