@@ -16,7 +16,7 @@ phases:
   pre_build:
     commands:
       - echo "=== Pre-build phase started ==="
-      - echo "Current directory: $(pwd)"
+      - echo "Current directory is $(pwd)"
       - echo "Directory contents:"
       - ls -la
       - echo "=== Navigating to terraform directory ==="
@@ -24,18 +24,15 @@ phases:
       - echo "Terraform directory contents:"
       - ls -la
       - echo "=== Creating terraform.tfvars ==="
-      - |
-        cat > terraform.tfvars << 'TFVARS'
-        project_name = "terraform-conformity-demo-v2"
-        conformity_region = "us-east-1"
-        github_owner = "adusei2023"
-        github_repo = "terraform-conformity-pipeline"
-        github_branch = "main"
-        aws_region = "us-east-1"
-        conformity_api_key = "dummy-will-be-overridden"
-        github_token = "dummy-will-be-overridden"
-        github_webhook_secret = "dummy-will-be-overridden"
-        TFVARS
+      - echo 'project_name = "terraform-conformity-demo-v2"' > terraform.tfvars
+      - echo 'conformity_region = "us-east-1"' >> terraform.tfvars
+      - echo 'github_owner = "adusei2023"' >> terraform.tfvars
+      - echo 'github_repo = "terraform-conformity-pipeline"' >> terraform.tfvars
+      - echo 'github_branch = "main"' >> terraform.tfvars
+      - echo 'aws_region = "us-east-1"' >> terraform.tfvars
+      - echo 'conformity_api_key = "dummy-will-be-overridden"' >> terraform.tfvars
+      - echo 'github_token = "dummy-will-be-overridden"' >> terraform.tfvars
+      - echo 'github_webhook_secret = "dummy-will-be-overridden"' >> terraform.tfvars
       - echo "=== terraform.tfvars created ==="
       - cat terraform.tfvars
       - echo "=== Running terraform init ==="
