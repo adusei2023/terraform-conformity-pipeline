@@ -5,14 +5,34 @@ phases:
     runtime-versions:
       python: 3.9
     commands:
-      - echo "=== Checking pre-installed Terraform ==="
-      - terraform --version || echo "Terraform not found, will install"
-      - echo "=== Installation phase completed ==="
+      - echo "=== Installing Terraform ==="
+      - echo "Checking system info..."
+      - uname -a
+      - echo "Installing prerequisites..."
+      - yum update -y
+      - yum install -y wget unzip
+      - echo "Downloading Terraform..."
+      - cd /tmp
+      - wget https://releases.hashicorp.com/terraform/1.6.0/terraform_1.6.0_linux_amd64.zip
+      - echo "Downloaded file info:"
+      - ls -la terraform_1.6.0_linux_amd64.zip
+      - echo "Extracting Terraform..."
+      - unzip terraform_1.6.0_linux_amd64.zip
+      - echo "Making executable and installing..."
+      - chmod +x terraform
+      - mv terraform /usr/local/bin/
+      - echo "Verifying installation..."
+      - which terraform
+      - terraform --version
+      - echo "=== Terraform installed successfully ==="
 
   pre_build:
     commands:
       - echo "=== Pre-build phase ==="
-      - pwd && ls -la
+      - echo "Current directory: $(pwd)"
+      - echo "Directory contents:"
+      - ls -la
+      - echo "=== Creating terraform.tfvars ==="
       - echo 'project_name = "terraform-conformity-demo-v2"' > terraform.tfvars
       - echo 'conformity_region = "us-east-1"' >> terraform.tfvars
       - echo 'github_owner = "adusei2023"' >> terraform.tfvars
@@ -22,13 +42,17 @@ phases:
       - echo 'conformity_api_key = "dummy"' >> terraform.tfvars
       - echo 'github_token = "dummy"' >> terraform.tfvars
       - echo 'github_webhook_secret = "dummy"' >> terraform.tfvars
+      - echo "=== terraform.tfvars created ==="
+      - cat terraform.tfvars
+      - echo "=== Running terraform init ==="
       - terraform init
 
   build:
     commands:
+      - echo "=== Build phase ==="
       - terraform validate
       - terraform plan -out=tfplan
-      - echo "Build completed successfully"
+      - echo "=== Build completed successfully ==="
 
   post_build:
     commands:
