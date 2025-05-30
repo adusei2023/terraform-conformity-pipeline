@@ -1,0 +1,63 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      nodejs: 18
+    commands:
+      - echo Installing Terraform...
+      - wget https://releases.hashicorp.com/terraform/1.6.0/terraform_1.6.0_linux_amd64.zip
+      - unzip terraform_1.6.0_linux_amd64.zip
+      - mv terraform /usr/local/bin/
+      - terraform --version
+      
+      - echo Installing Conformity Template Scanner...
+      - npm install -g @trendmicro/conformity-template-scanner
+      
+  pre_build:
+    commands:
+      - echo Logging in to AWS...
+      - aws sts get-caller-identity
+      
+  build:
+    commands:
+      - echo Starting Terraform validation...
+      - terraform init
+      - terraform validate
+      - terraform plan -out=tfplan
+      
+      - echo Running Conformity Template Scanner...
+      - conformity-template-scanner 
+          --api-key $CONFORMITY_API_KEY 
+          --region $CONFORMITY_REGION 
+          --template-file terraform/
+          --output-format json 
+          --output-file conformity-results.json
+          
+      - echo Checking scan results...
+      - |
+        if [ -f conformity-results.json ]; then
+          FAILURES=$(jq '.failures | length' conformity-results.json)
+          echo "Conformity scan found $FAILURES failures"
+          
+          if [ "$FAILURES" -gt 0 ]; then
+            echo "Security issues found! Check conformity-results.json for details"
+            jq '.failures' conformity-results.json
+            exit 1
+          else
+            echo "No security issues found!"
+          fi
+        fi
+        
+  post_build:
+    commands:
+      - echo Build completed on `date`
+      
+artifacts:
+  files:
+    - '**/*'
+  secondary-artifacts:
+    conformity-results:
+      files:
+        - conformity-results.json
+      name: ConformityResults
