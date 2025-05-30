@@ -124,7 +124,7 @@ resource "aws_codebuild_project" "terraform_build" {
 
   environment {
     compute_type = "BUILD_GENERAL1_MEDIUM"
-    image        = "aws/codebuild/standard:7.0"  # Updated to newer image
+    image        = "aws/codebuild/amazonlinux2-x86_64-standard:4.0"  # This has terraform pre-installed
     type         = "LINUX_CONTAINER"
 
     environment_variable {

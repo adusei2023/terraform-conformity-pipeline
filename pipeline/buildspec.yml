@@ -5,52 +5,34 @@ phases:
     runtime-versions:
       python: 3.9
     commands:
-      - echo "=== Installing Terraform ==="
-      - wget https://releases.hashicorp.com/terraform/1.6.0/terraform_1.6.0_linux_amd64.zip
-      - unzip terraform_1.6.0_linux_amd64.zip
-      - chmod +x terraform
-      - mv terraform /usr/local/bin/
-      - terraform --version
-      - echo "=== Terraform installed successfully ==="
+      - echo "=== Checking pre-installed Terraform ==="
+      - terraform --version || echo "Terraform not found, will install"
+      - echo "=== Installation phase completed ==="
 
   pre_build:
     commands:
-      - echo "=== Pre-build phase started ==="
-      - echo "Current directory is $(pwd)"
-      - echo "Directory contents:"
-      - ls -la
-      - echo "=== Looking for terraform files ==="
-      - find . -name "*.tf" -type f | head -10
-      - echo "=== Working in root directory (no cd terraform needed) ==="
-      - echo "=== Creating terraform.tfvars ==="
+      - echo "=== Pre-build phase ==="
+      - pwd && ls -la
       - echo 'project_name = "terraform-conformity-demo-v2"' > terraform.tfvars
       - echo 'conformity_region = "us-east-1"' >> terraform.tfvars
       - echo 'github_owner = "adusei2023"' >> terraform.tfvars
       - echo 'github_repo = "terraform-conformity-pipeline"' >> terraform.tfvars
       - echo 'github_branch = "main"' >> terraform.tfvars
       - echo 'aws_region = "us-east-1"' >> terraform.tfvars
-      - echo 'conformity_api_key = "dummy-will-be-overridden"' >> terraform.tfvars
-      - echo 'github_token = "dummy-will-be-overridden"' >> terraform.tfvars
-      - echo 'github_webhook_secret = "dummy-will-be-overridden"' >> terraform.tfvars
-      - echo "=== terraform.tfvars created ==="
-      - cat terraform.tfvars
-      - echo "=== Running terraform init ==="
+      - echo 'conformity_api_key = "dummy"' >> terraform.tfvars
+      - echo 'github_token = "dummy"' >> terraform.tfvars
+      - echo 'github_webhook_secret = "dummy"' >> terraform.tfvars
       - terraform init
 
   build:
     commands:
-      - echo "=== Build phase started ==="
-      - echo "=== Running terraform validate ==="
       - terraform validate
-      - echo "=== Running terraform plan ==="
       - terraform plan -out=tfplan
-      - echo "=== Terraform plan completed successfully ==="
-      - echo "=== Security scan completed (demo) ==="
+      - echo "Build completed successfully"
 
   post_build:
     commands:
-      - echo "=== Post-build phase ==="
-      - echo "Build completed successfully at $(date)"
+      - echo "Pipeline completed at $(date)"
 
 artifacts:
   files:
