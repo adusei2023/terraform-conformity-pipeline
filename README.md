@@ -29,16 +29,13 @@ This architecture illustrates the flow from code commit to infrastructure deploy
 
 ```
 .
-├── architecture-diagram.png
+
 ├── README.md
 ├── terraform
 │   ├── main.tf
 │   ├── variables.tf
 │   └── outputs.tf
-└── .github
-    └── workflows
-        └── terraform-cicd-pipeline.yml
-```
+
 
 - **`architecture-diagram.png`**: Overview of the system architecture
 - **`README.md`**: This documentation file
